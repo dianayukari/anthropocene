@@ -5,7 +5,6 @@
     import { tweened } from 'svelte/motion';
     import { cubicOut } from 'svelte/easing';
 
-    let y = 0
     let countdownNumbers = [];
     let currentIndex = 0
     let label = []
@@ -26,8 +25,8 @@
     onMount(async() => {
 
         window.onbeforeunload = function () {
-        window.scrollTo(0, 0);
-    }
+            window.scrollTo(0, 0);
+        }
 
         data = await d3.csv("/timeline.csv");
 
@@ -35,7 +34,7 @@
         temp = data.map(d => +d.temp);
 
         countdownNumbers = data.map(d => d.years_ago);
-        label = data.map(d => d.event.replaceAll(";", ";\n"))
+        label = data.map(d => d.event.replaceAll(";", `;<span class="spacer" style="display: block; height: 10px;"></span>`));
         pauseIndices = data.filter(d => d.event !== "NA").map(d => d.years_ago)
 
         totalScrolls = countdownNumbers.length + (pauseIndices.length*pauseScrolls)
@@ -79,15 +78,13 @@
     }
 
     //SCALES
-
     $: yScale = d3.scaleLinear()
         .domain([0, 1])
         .range([chartHeight || 0, 0])
 
     $: colorScale = d3.scaleLinear()
         .domain([8, 12.5, 15.4])
-        // .range(["#F6F8FF", "#FFFDE4", "#FAB9B9"])
-        .range(["blue", "yellow", "red"])
+        .range(["#C9D5FF", "#F2DF80", "#D45944"])
         .interpolate(d3.interpolate)
 
     //TRANSITIONS
@@ -110,8 +107,16 @@
         tweenedBg.set(bg);
     }
 
+    $: forestLabelTop = `${yScale($tweenedColumn) + 8}px`;
+
 
 </script>
+
+<svelte:head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+</svelte:head>
 
 <svelte:window on:scroll={handleScroll}/>
 
@@ -121,7 +126,13 @@
 
         <div class="container">
 
+            {#if currentIndex === 0}
+                <p class="temp-label">{Math.round(bg * 100) / 100}ºC <span class="explainer"> temperature that year</span></p>
+                <p class="forest-label" style="top: {forestLabelTop};">{Math.round((column*100)*100)/100}% <span class="explainer">forest cover that year</span> </p>
+            {/if}
+
             <p class="temp-label">{Math.round(bg * 100) / 100}ºC</p>
+            <p class="forest-label" style="top: {forestLabelTop};">{Math.round((column*100)*100)/100}%</p>
 
             <div class="bg">
                 <svg width={chartWidth} height={chartHeight}>
@@ -137,16 +148,15 @@
 
             <div class="countdown">
                 {#if countdownNumbers[currentIndex]}
-                <p class="yearsAgo">{countdownNumbers[currentIndex]} <br>years ago</p>
+                <p class="yearsAgo">{countdownNumbers[currentIndex]} <br><span class="smallYears">years ago</span></p>
                     
                 {#if label[currentIndex] !== "NA"}
-                        <p class="event">{label[currentIndex]}</p>
+                        <p class="event">{@html label[currentIndex]}</p>
                 {/if}
 
                 {/if}
             </div>
 
-            <p class="forest-label">{Math.round((column*100)*100)/100}%</p>
 
             <div class="chart">
                 <svg width={chartWidth} height={chartHeight}>
@@ -155,7 +165,7 @@
                         y={yScale($tweenedColumn)}
                         width={chartWidth}
                         height={chartHeight - yScale($tweenedColumn)}
-                        fill="green"
+                        fill="#336B62"
                     />
                 </svg>
             </div>
@@ -171,23 +181,37 @@
 
 <style>
 
+    :global(body) {
+        font-family: "Lora", serif;
+    }
+
     .scroll-container {
         height: 5000vh;
     }
 
-
     .yearsAgo {
         text-align: center;
+        color: white;
+        font-size: 35px;
+        line-height: 20px;
+        font-weight: 400;
+        margin: 0;
+    }
+
+    .smallYears {
+        font-size: 14px;
+        font-weight: 200;
     }
 
     .event {
-        white-space: pre-line
+        white-space: pre-line;
+        color: white;
+        font-size: 14px;
     }
 
     .bg {
         position: absolute;
         text-align: center;
-        /* display: inline; */
     }
 
     .container {
@@ -195,7 +219,7 @@
         height: 100vh;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        /* align-items: center; */
         position: fixed;
         right: 0;
         left: 0;
@@ -203,14 +227,23 @@
 
     .temp-label {
         position: absolute;
-        text-align: center;
+        text-align: right;
         z-index: 2;
+        color: white;
+        margin-left: 20px;
+        top: 8px;
     }
 
     .forest-label {
         z-index: 2;
         position: absolute;
-        top: 90vh;
+        color: white;
+        margin-left: 20px;
+    }
+
+    .explainer {
+        font-size: 12px;
+        font-weight: 200;
     }
 
     .countdown {
