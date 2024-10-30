@@ -4,6 +4,15 @@
     import * as d3 from 'd3';
     import { tweened } from 'svelte/motion';
     import { cubicOut } from 'svelte/easing';
+    import { fade } from 'svelte/transition';
+
+    d3.formatDefaultLocale({
+        "decimal": ",",
+        "thousands": ".",
+        "grouping": [3],
+    })
+
+    let formatNumber = d3.format(",.2f");
 
     let countdownNumbers = [];
     let currentIndex = 0
@@ -127,12 +136,18 @@
         <div class="container">
 
             {#if currentIndex === 0}
-                <p class="temp-label">{Math.round(bg * 100) / 100}ºC <span class="explainer"> temperature that year</span></p>
-                <p class="forest-label" style="top: {forestLabelTop};">{Math.round((column*100)*100)/100}% <span class="explainer">forest cover that year</span> </p>
-            {/if}
 
-            <p class="temp-label">{Math.round(bg * 100) / 100}ºC</p>
-            <p class="forest-label" style="top: {forestLabelTop};">{Math.round((column*100)*100)/100}%</p>
+                {#key bg}
+                    <p class="temp-label">{formatNumber(bg)}ºC <span class="explainer" out:fade> temperature that year</span></p>
+                {/key}
+                {#key column}
+                    <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}% <span class="explainer" out:fade>forest cover that year</span> </p>
+                {/key}
+            
+            {:else}
+                <p class="temp-label">{formatNumber(bg)}ºC</p>
+                <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}%</p>
+            {/if}
 
             <div class="bg">
                 <svg width={chartWidth} height={chartHeight}>
@@ -148,7 +163,7 @@
 
             <div class="countdown">
                 {#if countdownNumbers[currentIndex]}
-                <p class="yearsAgo">{countdownNumbers[currentIndex]} <br><span class="smallYears">years ago</span></p>
+                <p class="yearsAgo">{d3.format(",")(countdownNumbers[currentIndex])} <br><span class="smallYears">years ago</span></p>
                     
                 {#if label[currentIndex] !== "NA"}
                         <p class="event">{@html label[currentIndex]}</p>
