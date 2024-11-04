@@ -4,7 +4,7 @@
     import * as d3 from 'd3';
     import { tweened } from 'svelte/motion';
     import { cubicOut } from 'svelte/easing';
-    import { fade } from 'svelte/transition';
+    import { fade, fly } from 'svelte/transition';
 
     d3.formatDefaultLocale({
         "decimal": ",",
@@ -17,6 +17,7 @@
     let countdownNumbers = [];
     let currentIndex = 0
     let label = []
+    let year = []
 
     let pauseIndices = []
     let pauseScrolls = 60
@@ -28,6 +29,8 @@
     let data = []
     let forestPct= []
     let temp = []
+
+    let displayedEvents = []
 
     let dataReady = false
 
@@ -43,6 +46,7 @@
         temp = data.map(d => +d.temp);
 
         countdownNumbers = data.map(d => d.years_ago);
+        year = data.map(d => d.year);
         label = data.map(d => d.event.replaceAll(";", `;<span class="spacer" style="display: block; height: 10px;"></span>`));
         pauseIndices = data.filter(d => d.event !== "NA").map(d => d.years_ago)
 
@@ -84,6 +88,15 @@
 
         currentIndex = Math.min(adjustedIndex - (pauseCount * pauseScrolls), countdownNumbers.length -1)
         
+        const newEvent = { year: year[currentIndex], event: label[currentIndex] };
+
+        if (label[currentIndex] !== "NA") {
+            if (!displayedEvents.find(e => e.event === newEvent.event)) {
+                displayedEvents = [...displayedEvents, newEvent]
+            }
+        }
+
+        displayedEvents = displayedEvents.slice(-4)
     }
 
     //SCALES
@@ -95,6 +108,8 @@
         .domain([8, 12.5, 15.4])
         .range(["#C9D5FF", "#F2DF80", "#D45944"])
         .interpolate(d3.interpolate)
+
+
 
     //TRANSITIONS
 
@@ -116,7 +131,7 @@
         tweenedBg.set(bg);
     }
 
-    $: forestLabelTop = `${yScale($tweenedColumn) + 8}px`;
+    $: forestLabelTop = `${yScale($tweenedColumn) + 5}px`;
 
 
 </script>
@@ -137,16 +152,18 @@
 
             {#if currentIndex === 0}
 
-                {#key bg}
-                    <p class="temp-label">{formatNumber(bg)}ºC <span class="explainer" out:fade> temperature that year</span></p>
-                {/key}
                 {#key column}
                     <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}% <span class="explainer" out:fade>forest cover that year</span> </p>
                 {/key}
+
+                {#key bg}
+                    <p class="temp-label" style="top: {chartHeight - 60}px;">{formatNumber(bg)}ºC <span class="explainer" out:fade> temperature that year</span></p>
+                {/key}
+
             
             {:else}
-                <p class="temp-label">{formatNumber(bg)}ºC</p>
                 <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}%</p>
+                <p class="temp-label" style="top: {chartHeight - 60}px;">{formatNumber(bg)}ºC</p>
             {/if}
 
             <div class="bg">
@@ -163,15 +180,10 @@
 
             <div class="countdown">
                 {#if countdownNumbers[currentIndex]}
-                <p class="yearsAgo">{d3.format(",")(countdownNumbers[currentIndex])} <br><span class="smallYears">years ago</span></p>
-                    
-                {#if label[currentIndex] !== "NA"}
-                        <p class="event">{@html label[currentIndex]}</p>
-                {/if}
+                    <p class="yearsAgo">{d3.format(",")(countdownNumbers[currentIndex])} <br><span class="smallYears">years ago</span></p>
 
                 {/if}
             </div>
-
 
             <div class="chart">
                 <svg width={chartWidth} height={chartHeight}>
@@ -179,10 +191,17 @@
                         x={0}
                         y={yScale($tweenedColumn)}
                         width={chartWidth}
-                        height={chartHeight - yScale($tweenedColumn)}
+                        height="5px"
                         fill="#336B62"
                     />
                 </svg>
+            </div>
+
+            <div class="event-container">
+                {#each displayedEvents as { year, event } (event)}
+                    <p class="year">{(year)}</p>
+                    <p class="event" in:fly out:fade>{@html event}</p>
+                {/each}                
             </div>
 
         </div>
@@ -205,7 +224,6 @@
     }
 
     .yearsAgo {
-        text-align: center;
         color: white;
         font-size: 35px;
         line-height: 20px;
@@ -216,6 +234,18 @@
     .smallYears {
         font-size: 14px;
         font-weight: 200;
+    }
+
+    .event-container {
+        position: absolute;
+        top: 50%;
+        left: 70%;
+        transform: translate(-50%, -50%);
+        align-items: top;
+        width: 50%;
+        max-height: 60vh;
+        overflow: hidden;
+        z-index: 1;
     }
 
     .event {
@@ -246,7 +276,7 @@
         z-index: 2;
         color: white;
         margin-left: 20px;
-        top: 8px;
+        /* top: 8px; */
     }
 
     .forest-label {
@@ -265,7 +295,8 @@
         width: 180px;
         position: fixed;
         top: 50%;
-        left: calc(50% - 90px);
+        /* left: calc(50% - 90px); */
+        left: 20px;
         z-index: 2;
     }
 
