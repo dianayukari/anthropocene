@@ -4,7 +4,7 @@
     import * as d3 from 'd3';
     import { tweened } from 'svelte/motion';
     import { cubicOut } from 'svelte/easing';
-    import { fade, fly } from 'svelte/transition';
+    import { fade } from 'svelte/transition';
 
     d3.formatDefaultLocale({
         "decimal": ",",
@@ -18,6 +18,7 @@
     let currentIndex = 0
     let label = []
     let year = []
+    let yearsAgo = []
 
     let pauseIndices = []
     let pauseScrolls = 60
@@ -47,6 +48,7 @@
 
         countdownNumbers = data.map(d => d.years_ago);
         year = data.map(d => d.year);
+        yearsAgo = data.map(d => +d.years_ago);
         label = data.map(d => d.event.replaceAll(";", `;<span class="spacer" style="display: block; height: 10px;"></span>`));
         pauseIndices = data.filter(d => d.event !== "NA").map(d => d.years_ago)
 
@@ -88,18 +90,25 @@
 
         currentIndex = Math.min(adjustedIndex - (pauseCount * pauseScrolls), countdownNumbers.length -1)
         
-        const newEvent = { year: year[currentIndex], event: label[currentIndex] };
+        const newEvent = { year: year[currentIndex], event: label[currentIndex], yearsAgo: yearsAgo[currentIndex]  };
 
         if (label[currentIndex] !== "NA") {
-            if (!displayedEvents.find(e => e.event === newEvent.event)) {
-                displayedEvents = [...displayedEvents, newEvent]
+            if (!displayedEvents.some(e => e.event === newEvent.event)) {
+                displayedEvents.forEach(e => e.yOffset = (e.yOffset || 0) - 15);
+                displayedEvents.push({ ...newEvent, yOffset: 0 });
+                
+                if (displayedEvents.length > 4) {
+                    displayedEvents.shift();
+                }
+
+                displayedEvents = [...displayedEvents];
             }
         }
 
-        displayedEvents = displayedEvents.slice(-4)
     }
 
     //SCALES
+
     $: yScale = d3.scaleLinear()
         .domain([0, 1])
         .range([chartHeight || 0, 0])
@@ -108,8 +117,6 @@
         .domain([8, 12.5, 15.4])
         .range(["#C9D5FF", "#F2DF80", "#D45944"])
         .interpolate(d3.interpolate)
-
-
 
     //TRANSITIONS
 
@@ -133,6 +140,8 @@
 
     $: forestLabelTop = `${yScale($tweenedColumn) + 5}px`;
 
+    $: console.log(yearsAgo[currentIndex]<1300)
+
 
 </script>
 
@@ -150,20 +159,24 @@
 
         <div class="container">
 
-            {#if currentIndex === 0}
+            {#if yearsAgo[currentIndex] < 13000}
+                  
+                {#if currentIndex === 0}
 
-                {#key column}
-                    <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}% <span class="explainer" out:fade>forest cover that year</span> </p>
-                {/key}
+                    {#key column}
+                        <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}% <span class="explainer" out:fade>forest cover that year</span> </p>
+                    {/key}
 
-                {#key bg}
-                    <p class="temp-label" style="top: {chartHeight - 60}px;">{formatNumber(bg)}ºC <span class="explainer" out:fade> temperature that year</span></p>
-                {/key}
+                    {#key bg}
+                        <p class="temp-label" style="top: 3px;">{formatNumber(bg)}ºC <span class="explainer" out:fade> temperature that year</span></p>
+                    {/key}
 
-            
-            {:else}
-                <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}%</p>
-                <p class="temp-label" style="top: {chartHeight - 60}px;">{formatNumber(bg)}ºC</p>
+                
+                {:else}
+                    <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}%</p>
+                    <p class="temp-label" style="top: 3px;">{formatNumber(bg)}ºC</p>
+                {/if}
+
             {/if}
 
             <div class="bg">
@@ -191,16 +204,22 @@
                         x={0}
                         y={yScale($tweenedColumn)}
                         width={chartWidth}
-                        height="5px"
+                        height={chartHeight - yScale($tweenedColumn)}
                         fill="#336B62"
                     />
                 </svg>
             </div>
 
             <div class="event-container">
-                {#each displayedEvents as { year, event } (event)}
-                    <p class="year">{(year)}</p>
-                    <p class="event" in:fly out:fade>{@html event}</p>
+                {#each displayedEvents as { year, event, yOffset, yearsAgo } (event)}
+                    
+                        <p class="year" style="transform: translateY({yOffset}px); transition: transform 0.3s ease;">
+                            {#if yearsAgo < 12000}
+                                {year}
+                            {/if}
+                            </p>
+                    
+                        <p class="event" style="transform: translateY({yOffset}px); transition: transform 0.3s ease;">{@html event}</p>
                 {/each}                
             </div>
 
@@ -216,7 +235,7 @@
 <style>
 
     :global(body) {
-        font-family: "Lora", serif;
+        font-family: "Fira Sans", serif;
     }
 
     .scroll-container {
@@ -248,10 +267,23 @@
         z-index: 1;
     }
 
+    .spacer {
+        display: block;
+        height: 6px;
+    }
+
+    .year {
+        color: white;
+        font-weight: 500;
+        margin: 0;
+    }
+
     .event {
         white-space: pre-line;
         color: white;
         font-size: 14px;
+        transition: transform 1ms ease;
+        margin-top: 6px;
     }
 
     .bg {
