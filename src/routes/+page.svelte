@@ -161,7 +161,7 @@
 
             {#if yearsAgo[currentIndex] < 13000}
                   
-                {#if currentIndex === 0}
+                {#if yearsAgo[currentIndex] == 12000}
 
                     {#key column}
                         <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}% <span class="explainer" out:fade>forest cover that year</span> </p>
@@ -179,6 +179,34 @@
 
             {/if}
 
+            <div class="countdownContainer">
+
+                <div class="countdown">
+                    {#if yearsAgo[currentIndex] > 12000}
+                        <p class="yearsAgo">{d3.format(".1f")(countdownNumbers[currentIndex]/1000000000)}<p class="smallYears">billion of years ago</p>
+                    {:else if countdownNumbers[currentIndex] && yearsAgo[currentIndex] <= 12000}
+                        <p class="yearsAgo">{d3.format(",")(countdownNumbers[currentIndex])}<p class="smallYears">years ago</p>
+                    {/if}
+                </div>
+
+                <div class="event-container">
+                    {#each displayedEvents as { year, event, yOffset, yearsAgo } (event)}
+                        <p class="year" style="transform: translateY({yOffset - 10}px); transition: transform 0.3s ease;">
+                            {#if yearsAgo < 11900}
+                                {year}
+                            {/if}
+                            </p>
+
+                        {#if yearsAgo > 11900}
+                            <p class="event" style="transform: translateY({yOffset}px); transition: transform 0.3s ease; color: #5A6269; font-style: italic;">{@html event}</p>
+                        {:else}
+                            <p class="event" style="transform: translateY({yOffset}px); transition: transform 0.3s ease;">{@html event}</p>
+                        {/if}
+                    {/each}                
+                </div>
+
+            </div>
+
             <div class="bg">
                 <svg width={chartWidth} height={chartHeight}>
                     <rect
@@ -191,36 +219,16 @@
                 </svg>
             </div>
 
-            <div class="countdown">
-                {#if countdownNumbers[currentIndex]}
-                    <p class="yearsAgo">{d3.format(",")(countdownNumbers[currentIndex])} <br><span class="smallYears">years ago</span></p>
-
-                {/if}
-            </div>
-
             <div class="chart">
                 <svg width={chartWidth} height={chartHeight}>
                     <rect
                         x={0}
                         y={yScale($tweenedColumn)}
-                        width={chartWidth}
+                        width="80px"
                         height={chartHeight - yScale($tweenedColumn)}
                         fill="#336B62"
                     />
                 </svg>
-            </div>
-
-            <div class="event-container">
-                {#each displayedEvents as { year, event, yOffset, yearsAgo } (event)}
-                    
-                        <p class="year" style="transform: translateY({yOffset}px); transition: transform 0.3s ease;">
-                            {#if yearsAgo < 12000}
-                                {year}
-                            {/if}
-                            </p>
-                    
-                        <p class="event" style="transform: translateY({yOffset}px); transition: transform 0.3s ease;">{@html event}</p>
-                {/each}                
             </div>
 
         </div>
@@ -236,16 +244,29 @@
 
     :global(body) {
         font-family: "Fira Sans", serif;
+        margin: 0;
     }
 
     .scroll-container {
         height: 5000vh;
+        background-color: transparent;
+    }
+
+    .countdownContainer {
+        display: flex;
+        position: absolute;
+        /* width: 50%; */
+        top: 40%;
+        left: 50%;
+        flex-wrap: wrap;
+        transform: translate(-50%, 0);
+        z-index: 1;
     }
 
     .yearsAgo {
-        color: white;
+        /* color: white; */
         font-size: 35px;
-        line-height: 20px;
+        line-height: 10px;
         font-weight: 400;
         margin: 0;
     }
@@ -253,18 +274,20 @@
     .smallYears {
         font-size: 14px;
         font-weight: 200;
+        margin-top: 20px;
+        width: 80px;
     }
 
     .event-container {
-        position: absolute;
-        top: 50%;
+        /* position: absolute; */
+        /* top: 50%;
         left: 70%;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%); */
         align-items: top;
-        width: 50%;
-        max-height: 60vh;
+        width: 250px;
+        max-height: 50vh;
         overflow: hidden;
-        z-index: 1;
+        /* z-index: 1; */
     }
 
     .spacer {
@@ -273,22 +296,24 @@
     }
 
     .year {
-        color: white;
+        /* color: white; */
         font-weight: 500;
-        margin: 0;
+        margin: 20px 0 0 0;
+        line-height: 10px;
     }
 
     .event {
         white-space: pre-line;
-        color: white;
+        /* color: white; */
         font-size: 14px;
         transition: transform 1ms ease;
-        margin-top: 6px;
+        margin: 5px 0 0 0;
     }
 
     .bg {
         position: absolute;
         text-align: center;
+        z-index: 0;
     }
 
     .container {
@@ -300,13 +325,15 @@
         position: fixed;
         right: 0;
         left: 0;
+        background-color: transparent;
+
     }
 
     .temp-label {
         position: absolute;
         text-align: right;
         z-index: 2;
-        color: white;
+        /* color: white; */
         margin-left: 20px;
         /* top: 8px; */
     }
@@ -314,7 +341,7 @@
     .forest-label {
         z-index: 2;
         position: absolute;
-        color: white;
+        /* color: white; */
         margin-left: 20px;
     }
 
@@ -324,17 +351,16 @@
     }
 
     .countdown {
-        width: 180px;
-        position: fixed;
-        top: 50%;
-        /* left: calc(50% - 90px); */
-        left: 20px;
-        z-index: 2;
+        width: 130px;
+        /* position: fixed; */
+        /* top: 50%; */
+        /* left: calc(40% - 90px); */
+        /* left: 20px; */
+        /* z-index: 2; */
     }
 
     .chart {
         z-index: 1;
     }
-
 
 </style>
