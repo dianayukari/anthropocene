@@ -260,7 +260,7 @@
         left: 50%;
         flex-wrap: wrap;
         transform: translate(-50%, 0);
-        z-index: 1;
+        z-index: 2;
     }
 
     .yearsAgo {
