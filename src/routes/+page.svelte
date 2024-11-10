@@ -257,7 +257,7 @@
         position: absolute;
         /* width: 50%; */
         top: 40%;
-        left: 50%;
+        left: 60%;
         flex-wrap: wrap;
         transform: translate(-50%, 0);
         z-index: 1;
