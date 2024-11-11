@@ -4,7 +4,6 @@
     import * as d3 from 'd3';
     import { tweened } from 'svelte/motion';
     import { cubicOut } from 'svelte/easing';
-    import { fade } from 'svelte/transition';
 
     d3.formatDefaultLocale({
         "decimal": ",",
@@ -30,8 +29,14 @@
     let data = []
     let forestPct= []
     let temp = []
+    let tempStart = []
 
-    let displayedEvents = []
+    let displayedEvents = [{event:"Scroll to start"}]
+    let pathLength = 0
+    let lineTween = tweened(0, {
+        duration: 400,
+        easing: cubicOut
+    });
 
     let dataReady = false
 
@@ -45,6 +50,7 @@
 
         forestPct = data.map(d => +d.pct);
         temp = data.map(d => +d.temp);
+        tempStart = temp.slice(44, temp.length)
 
         countdownNumbers = data.map(d => d.years_ago);
         year = data.map(d => d.year);
@@ -63,10 +69,12 @@
     //SCROLL
 
     function handleScroll(e) {
+
         const scrollPct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
         let scrollIndex = Math.floor(scrollPct*totalScrolls)
         let adjustedIndex = 0
         let pauseCount = 0
+        
 
         for(let i = 0; i < countdownNumbers.length; i++) {            
 
@@ -93,11 +101,14 @@
         const newEvent = { year: year[currentIndex], event: label[currentIndex], yearsAgo: yearsAgo[currentIndex]  };
 
         if (label[currentIndex] !== "NA") {
-            if (!displayedEvents.some(e => e.event === newEvent.event)) {
-                displayedEvents.forEach(e => e.yOffset = (e.yOffset || 0) - 15);
+
+            if(currentIndex == data.length - 1) {
+                displayedEvents = [newEvent]
+            } else if (!displayedEvents.some(e => e.event === newEvent.event)) {
+                displayedEvents.forEach(e => e.yOffset = (e.yOffset || 0) - 1);
                 displayedEvents.push({ ...newEvent, yOffset: 0 });
                 
-                if (displayedEvents.length > 4) {
+                if (displayedEvents.length > 1) {
                     displayedEvents.shift();
                 }
 
@@ -105,9 +116,19 @@
             }
         }
 
+        pathLength = Math.min(currentIndex, forestPct.length - 1)
+        lineTween.set(pathLength)
     }
 
     //SCALES
+
+    $: miniYScale = d3.scaleLinear()
+        .domain([0, 1])
+        .range([60, 0])
+
+    $: miniYScaleTemp = d3.scaleLinear()
+        .domain([8, 16])
+        .range([60, 0])
 
     $: yScale = d3.scaleLinear()
         .domain([0, 1])
@@ -115,8 +136,18 @@
 
     $: colorScale = d3.scaleLinear()
         .domain([8, 12.5, 15.4])
-        .range(["#C9D5FF", "#F2DF80", "#D45944"])
+        .range(["#C9D5FF", "#FCE45E", "#A3181D"])
         .interpolate(d3.interpolate)
+
+    $: miniLineGenerator = d3.line()
+        .x((d, i) => i * (40 / forestPct.length))
+        .y(d => miniYScale(d))
+        .curve(d3.curveMonotoneX)(forestPct.slice(0, $lineTween));
+
+    $: miniLineGeneratorTemp = d3.line()
+        .x((d, i) => i * (45 / tempStart.length))
+        .y(d => miniYScaleTemp(d))
+        .curve(d3.curveMonotoneX)(temp.slice(0, $lineTween));
 
     //TRANSITIONS
 
@@ -130,8 +161,8 @@
         easing: cubicOut
     });
 
-    $: column = forestPct[currentIndex]
-    $: bg = temp[currentIndex]
+    $: column = forestPct[currentIndex] || 100
+    $: bg = temp[currentIndex] || 0
     
     $: if (dataReady) {
         tweenedColumn.set(column);
@@ -139,8 +170,6 @@
     }
 
     $: forestLabelTop = `${yScale($tweenedColumn) + 5}px`;
-
-    $: console.log(yearsAgo[currentIndex]<1300)
 
 
 </script>
@@ -161,21 +190,72 @@
 
             {#if yearsAgo[currentIndex] < 13000}
                   
-                {#if yearsAgo[currentIndex] == 12000}
+                {#if yearsAgo[currentIndex] > 1000}
 
                     {#key column}
-                        <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}% <span class="explainer" out:fade>forest cover that year</span> </p>
+                        <div class="forest-container">
+                            <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}% <span class="explainer">forest cover that year</span> </p>
+                            <div class="mini-chart" style="top: {forestLabelTop};">
+                                <svg width={50} height={50}>
+                                    <path
+                                        d={miniLineGenerator}
+                                        fill="none"
+                                        stroke="white"
+                                        stroke-width="2"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
                     {/key}
 
                     {#key bg}
-                        <p class="temp-label" style="top: 3px;">{formatNumber(bg)}ºC <span class="explainer" out:fade> temperature that year</span></p>
+                    <div class="temp-container">
+                        <p class="temp-label" style="top: 3px;">{formatNumber(bg)}ºC <span class="explainer"> temperature that year</span></p>
+                        <div class="mini-chart-temp">
+                            <svg width={50} height={50}>
+                                    <path
+                                        d={miniLineGeneratorTemp}
+                                        fill="none"
+                                        stroke="white"
+                                        stroke-width="2"
+                                        
+                                    />
+                            </svg>
+                        </div>
+                    </div>
                     {/key}
 
                 
                 {:else}
-                    <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}%</p>
+                    <div class="forest-container">
+                        <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}%</p>
+                        <div class="mini-chart" style="top: {forestLabelTop};">
+                            <svg width={50} height={50}>
+                                <path
+                                    d={miniLineGenerator}
+                                    fill="none"
+                                    stroke="white"
+                                    stroke-width="2"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                <div class="temp-container">
                     <p class="temp-label" style="top: 3px;">{formatNumber(bg)}ºC</p>
+                    <div class="mini-chart-temp">
+                        <svg width={50} height={50}>
+                            <path
+                                d={miniLineGeneratorTemp}
+                                fill="none"
+                                stroke="white"
+                                stroke-width="2"
+                            />
+                        </svg>
+                    </div>
+                </div>
                 {/if}
+
+
 
             {/if}
 
@@ -191,14 +271,14 @@
 
                 <div class="event-container">
                     {#each displayedEvents as { year, event, yOffset, yearsAgo } (event)}
-                        <p class="year" style="transform: translateY({yOffset - 10}px); transition: transform 0.3s ease;">
+                        <p class="year" style="transform: translateY({yOffset - 5}px); transition: transform 0.3s ease;">
                             {#if yearsAgo < 11900}
                                 {year}
                             {/if}
                             </p>
 
                         {#if yearsAgo > 11900}
-                            <p class="event" style="transform: translateY({yOffset}px); transition: transform 0.3s ease; color: #5A6269; font-style: italic;">{@html event}</p>
+                            <p class="event" style="transform: translateY({yOffset}px); transition: transform 0.3s ease; color: white; font-style: italic;">{@html event}</p>
                         {:else}
                             <p class="event" style="transform: translateY({yOffset}px); transition: transform 0.3s ease;">{@html event}</p>
                         {/if}
@@ -224,9 +304,9 @@
                     <rect
                         x={0}
                         y={yScale($tweenedColumn)}
-                        width="80px"
+                        width={chartWidth}
                         height={chartHeight - yScale($tweenedColumn)}
-                        fill="#336B62"
+                        fill="#0C584C"
                     />
                 </svg>
             </div>
@@ -257,14 +337,29 @@
         position: absolute;
         /* width: 50%; */
         top: 40%;
-        left: 60%;
+        left: 50%;
         flex-wrap: wrap;
-        transform: translate(-50%, 0);
-        z-index: 1;
+        transform: translate(-40%, 0);
+        z-index: 10;
     }
 
+    .mini-chart {
+        position: absolute;
+        z-index: 10;
+        margin-left: 20px;
+        margin-top: 40px;
+    }
+
+    .mini-chart-temp {
+        position: absolute;
+        z-index: 1;
+        margin-left: 20px;
+        margin-top: 40px;
+    }
+    
+
     .yearsAgo {
-        /* color: white; */
+        color: white;
         font-size: 35px;
         line-height: 10px;
         font-weight: 400;
@@ -276,6 +371,7 @@
         font-weight: 200;
         margin-top: 20px;
         width: 80px;
+        color: white;
     }
 
     .event-container {
@@ -285,7 +381,7 @@
         transform: translate(-50%, -50%); */
         align-items: top;
         width: 250px;
-        max-height: 50vh;
+        max-height: 40vh;
         overflow: hidden;
         /* z-index: 1; */
     }
@@ -296,7 +392,7 @@
     }
 
     .year {
-        /* color: white; */
+        color: white;
         font-weight: 500;
         margin: 20px 0 0 0;
         line-height: 10px;
@@ -304,7 +400,7 @@
 
     .event {
         white-space: pre-line;
-        /* color: white; */
+        color: white;
         font-size: 14px;
         transition: transform 1ms ease;
         margin: 5px 0 0 0;
@@ -332,8 +428,8 @@
     .temp-label {
         position: absolute;
         text-align: right;
-        z-index: 2;
-        /* color: white; */
+        z-index: 1;
+        color: white;
         margin-left: 20px;
         /* top: 8px; */
     }
@@ -341,7 +437,7 @@
     .forest-label {
         z-index: 2;
         position: absolute;
-        /* color: white; */
+        color: white;
         margin-left: 20px;
     }
 
@@ -352,11 +448,6 @@
 
     .countdown {
         width: 130px;
-        /* position: fixed; */
-        /* top: 50%; */
-        /* left: calc(40% - 90px); */
-        /* left: 20px; */
-        /* z-index: 2; */
     }
 
     .chart {
