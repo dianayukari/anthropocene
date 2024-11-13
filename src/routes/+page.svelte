@@ -105,7 +105,7 @@
             if(currentIndex == data.length - 1) {
                 displayedEvents = [newEvent]
             } else if (!displayedEvents.some(e => e.event === newEvent.event)) {
-                displayedEvents.forEach(e => e.yOffset = (e.yOffset || 0) - 1);
+                displayedEvents.forEach(e => e.yOffset = (e.yOffset || 0));
                 displayedEvents.push({ ...newEvent, yOffset: 0 });
                 
                 if (displayedEvents.length > 1) {
@@ -271,7 +271,7 @@
 
                 <div class="event-container">
                     {#each displayedEvents as { year, event, yOffset, yearsAgo } (event)}
-                        <p class="year" style="transform: translateY({yOffset - 5}px); transition: transform 0.3s ease;">
+                        <p class="year" style="transform: translateY({yOffset}px); transition: transform 0.3s ease;">
                             {#if yearsAgo < 11900}
                                 {year}
                             {/if}
@@ -335,12 +335,12 @@
     .countdownContainer {
         display: flex;
         position: absolute;
-        /* width: 50%; */
         top: 40%;
         left: 50%;
         flex-wrap: wrap;
         transform: translate(-40%, 0);
         z-index: 10;
+        gap: 15px;
     }
 
     .mini-chart {
@@ -361,7 +361,6 @@
     .yearsAgo {
         color: white;
         font-size: 35px;
-        line-height: 10px;
         font-weight: 400;
         margin: 0;
     }
@@ -372,18 +371,14 @@
         margin-top: 20px;
         width: 80px;
         color: white;
+        margin: 0;
     }
 
     .event-container {
-        /* position: absolute; */
-        /* top: 50%;
-        left: 70%;
-        transform: translate(-50%, -50%); */
         align-items: top;
         width: 250px;
         max-height: 40vh;
         overflow: hidden;
-        /* z-index: 1; */
     }
 
     .spacer {
@@ -394,8 +389,7 @@
     .year {
         color: white;
         font-weight: 500;
-        margin: 20px 0 0 0;
-        line-height: 10px;
+        margin: 5px 0 0 0;
     }
 
     .event {
@@ -417,7 +411,6 @@
         height: 100vh;
         display: flex;
         flex-direction: column;
-        /* align-items: center; */
         position: fixed;
         right: 0;
         left: 0;
