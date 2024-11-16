@@ -60,7 +60,7 @@
 
         totalScrolls = countdownNumbers.length + (pauseIndices.length*pauseScrolls)
 
-        chartHeight = window.innerHeight
+        chartHeight = window.innerHeight - 40
         chartWidth = window.innerWidth
 
         dataReady = true;
@@ -124,11 +124,11 @@
 
     $: miniYScale = d3.scaleLinear()
         .domain([0, 1])
-        .range([60, 0])
+        .range([50, 0])
 
     $: miniYScaleTemp = d3.scaleLinear()
         .domain([8, 16])
-        .range([60, 0])
+        .range([50, 0])
 
     $: yScale = d3.scaleLinear()
         .domain([0, 1])
@@ -140,12 +140,12 @@
         .interpolate(d3.interpolate)
 
     $: miniLineGenerator = d3.line()
-        .x((d, i) => i * (40 / forestPct.length))
+        .x((d, i) => i * (50 / forestPct.length))
         .y(d => miniYScale(d))
         .curve(d3.curveMonotoneX)(forestPct.slice(0, $lineTween));
 
     $: miniLineGeneratorTemp = d3.line()
-        .x((d, i) => i * (45 / tempStart.length))
+        .x((d, i) => i * (50 / tempStart.length))
         .y(d => miniYScaleTemp(d))
         .curve(d3.curveMonotoneX)(temp.slice(0, $lineTween));
 
@@ -193,10 +193,10 @@
                 {#if yearsAgo[currentIndex] > 1000}
 
                     {#key column}
-                        <div class="forest-container">
-                            <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}% <span class="explainer">forest cover that year</span> </p>
-                            <div class="mini-chart" style="top: {forestLabelTop};">
-                                <svg width={50} height={50}>
+                        <div class="forest-container" style="top: {forestLabelTop};">
+                            <p class="forest-label">{formatNumber(column*100)}% <span class="explainer">forest cover</span> </p>
+                            <div class="mini-chart">
+                                <svg width={100} height={60}>
                                     <path
                                         d={miniLineGenerator}
                                         fill="none"
@@ -210,9 +210,9 @@
 
                     {#key bg}
                     <div class="temp-container">
-                        <p class="temp-label" style="top: 3px;">{formatNumber(bg)}ºC <span class="explainer"> temperature that year</span></p>
+                        <p class="temp-label" style="top: 3px;">{formatNumber(bg)}ºC <span class="explainer"> temperature</span></p>
                         <div class="mini-chart-temp">
-                            <svg width={50} height={50}>
+                            <svg width={100} height={60}>
                                     <path
                                         d={miniLineGeneratorTemp}
                                         fill="none"
@@ -227,10 +227,10 @@
 
                 
                 {:else}
-                    <div class="forest-container">
-                        <p class="forest-label" style="top: {forestLabelTop};">{formatNumber(column*100)}%</p>
-                        <div class="mini-chart" style="top: {forestLabelTop};">
-                            <svg width={50} height={50}>
+                    <div class="forest-container" style="top: {forestLabelTop};">
+                        <p class="forest-label">{formatNumber(column*100)}%</p>
+                        <div class="mini-chart" >
+                            <svg width={100} height={60}>
                                 <path
                                     d={miniLineGenerator}
                                     fill="none"
@@ -241,9 +241,9 @@
                         </div>
                     </div>
                 <div class="temp-container">
-                    <p class="temp-label" style="top: 3px;">{formatNumber(bg)}ºC</p>
+                    <p class="temp-label">{formatNumber(bg)}ºC</p>
                     <div class="mini-chart-temp">
-                        <svg width={50} height={50}>
+                        <svg width={100} height={60}>
                             <path
                                 d={miniLineGeneratorTemp}
                                 fill="none"
@@ -288,12 +288,12 @@
             </div>
 
             <div class="bg">
-                <svg width={chartWidth} height={chartHeight}>
+                <svg width={chartWidth} height={chartHeight + 60}>
                     <rect
                         x={0}
                         y={0}
                         width={chartWidth}
-                        height={chartHeight}
+                        height={chartHeight + 60}
                         fill={colorScale($tweenedBg)}
                     />
                 </svg>
@@ -302,9 +302,9 @@
             <div class="chart">
                 <svg width={chartWidth} height={chartHeight}>
                     <rect
-                        x={0}
+                        x={chartWidth * 0.075}
                         y={yScale($tweenedColumn)}
-                        width={chartWidth}
+                        width={chartWidth * 0.85}
                         height={chartHeight - yScale($tweenedColumn)}
                         fill="#0C584C"
                     />
@@ -327,6 +327,10 @@
         margin: 0;
     }
 
+    :global(svg) {
+        overflow: visible;
+    }
+
     .scroll-container {
         height: 5000vh;
         background-color: transparent;
@@ -335,26 +339,26 @@
     .countdownContainer {
         display: flex;
         position: absolute;
-        top: 40%;
+        top: 35%;
         left: 50%;
         flex-wrap: wrap;
         transform: translate(-40%, 0);
         z-index: 10;
-        gap: 15px;
+        gap: 25px;
+    }
+
+    .countdown {
+        width: 100px;
     }
 
     .mini-chart {
         position: absolute;
         z-index: 10;
-        margin-left: 20px;
-        margin-top: 40px;
     }
 
     .mini-chart-temp {
         position: absolute;
         z-index: 1;
-        margin-left: 20px;
-        margin-top: 40px;
     }
     
 
@@ -376,7 +380,7 @@
 
     .event-container {
         align-items: top;
-        width: 250px;
+        width: 200px;
         max-height: 40vh;
         overflow: hidden;
     }
@@ -419,32 +423,29 @@
         background-color: transparent;
 
     }
-
-    .temp-label {
+    .forest-container {
         position: absolute;
-        text-align: right;
-        z-index: 1;
         color: white;
-        margin-left: 20px;
-        font-weight: 600;
-        /* top: 8px; */
+        z-index: 2;
+        margin-left: 10%;
     }
 
-    .forest-label {
-        z-index: 2;
+    .forest-label, .temp-label  {
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+   .temp-container {
         position: absolute;
         color: white;
-        margin-left: 20px;
-        font-weight: 600;
+        z-index: 1;
+        margin-left: 10%;
+        margin-top: 10px;
     }
 
     .explainer {
         font-size: 12px;
         font-weight: 200;
-    }
-
-    .countdown {
-        width: 130px;
     }
 
     .chart {
