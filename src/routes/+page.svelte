@@ -4,14 +4,9 @@
     import * as d3 from 'd3';
     import { tweened } from 'svelte/motion';
     import { cubicOut } from 'svelte/easing';
-
-    d3.formatDefaultLocale({
-        "decimal": ",",
-        "thousands": ".",
-        "grouping": [3],
-    })
-
-    let formatNumber = d3.format(",.2f");
+	import Background from '$lib/components/Background.svelte';
+	import MiniChart from '../lib/components/MiniChart.svelte';
+	import ColumnChart from '../lib/components/ColumnChart.svelte';
 
     let countdownNumbers = [];
     let currentIndex = 0
@@ -33,10 +28,7 @@
 
     let displayedEvents = [{event:"Scroll to start"}]
     let pathLength = 0
-    let lineTween = tweened(0, {
-        duration: 400,
-        easing: cubicOut
-    });
+
 
     let dataReady = false
 
@@ -48,7 +40,7 @@
 
         data = await d3.csv("/timeline.csv");
 
-        forestPct = data.map(d => +d.pct);
+        forestPct = data.map(d => +d.pct * 100);
         temp = data.map(d => +d.temp);
         tempStart = temp.slice(44, temp.length)
 
@@ -116,8 +108,6 @@
             }
         }
 
-        pathLength = Math.min(currentIndex, forestPct.length - 1)
-        lineTween.set(pathLength)
     }
 
     //SCALES
@@ -126,50 +116,27 @@
         .domain([0, 1])
         .range([50, 0])
 
-    $: miniYScaleTemp = d3.scaleLinear()
-        .domain([8, 16])
-        .range([50, 0])
 
-    $: yScale = d3.scaleLinear()
-        .domain([0, 1])
-        .range([chartHeight || 0, 0])
 
-    $: colorScale = d3.scaleLinear()
-        .domain([8, 12.5, 15.4])
-        .range(["#C9D5FF", "#FCE45E", "#A3181D"])
-        .interpolate(d3.interpolate)
 
-    $: miniLineGenerator = d3.line()
-        .x((d, i) => i * (50 / forestPct.length))
-        .y(d => miniYScale(d))
-        .curve(d3.curveMonotoneX)(forestPct.slice(0, $lineTween));
 
-    $: miniLineGeneratorTemp = d3.line()
-        .x((d, i) => i * (50 / tempStart.length))
-        .y(d => miniYScaleTemp(d))
-        .curve(d3.curveMonotoneX)(temp.slice(0, $lineTween));
+
+
+    // $: miniLineGeneratorTemp = d3.line()
+    //     .x((d, i) => i * (50 / tempStart.length))
+    //     .y(d => miniYScaleTemp(d))
+    //     .curve(d3.curveMonotoneX)(temp.slice(0, $lineTween));
 
     //TRANSITIONS
 
-    let tweenedColumn = tweened(0.97, {
-        duration: 800, 
-        easing:cubicOut
-    });
 
-    let tweenedBg = tweened(8, {
-        duration: 400,
-        easing: cubicOut
-    });
+
+
 
     $: column = forestPct[currentIndex] || 100
-    $: bg = temp[currentIndex] || 0
     
-    $: if (dataReady) {
-        tweenedColumn.set(column);
-        tweenedBg.set(bg);
-    }
 
-    $: forestLabelTop = `${yScale($tweenedColumn) + 5}px`;
+    // $: forestLabelTop = `${yScale($tweenedColumn) + 5}px`;
 
 
 </script>
@@ -188,7 +155,7 @@
 
         <div class="container">
 
-            {#if yearsAgo[currentIndex] < 13000}
+            <!-- {#if yearsAgo[currentIndex] < 13000}
                   
                 {#if yearsAgo[currentIndex] > 1000}
 
@@ -227,19 +194,10 @@
 
                 
                 {:else}
-                    <div class="forest-container" style="top: {forestLabelTop};">
-                        <p class="forest-label">{formatNumber(column*100)}%</p>
-                        <div class="mini-chart" >
-                            <svg width={100} height={60}>
-                                <path
-                                    d={miniLineGenerator}
-                                    fill="none"
-                                    stroke="white"
-                                    stroke-width="2"
-                                />
-                            </svg>
-                        </div>
-                    </div>
+                    
+
+
+
                 <div class="temp-container">
                     <p class="temp-label">{formatNumber(bg)}ºC</p>
                     <div class="mini-chart-temp">
@@ -257,9 +215,11 @@
 
 
 
-            {/if}
+            {/if} -->
 
-            <div class="countdownContainer">
+
+
+            <!-- <div class="countdownContainer">
 
                 <div class="countdown">
                     {#if yearsAgo[currentIndex] > 12000}
@@ -285,31 +245,16 @@
                     {/each}                
                 </div>
 
-            </div>
+            </div> -->
 
-            <div class="bg">
-                <svg width={chartWidth} height={chartHeight + 60}>
-                    <rect
-                        x={0}
-                        y={0}
-                        width={chartWidth}
-                        height={chartHeight + 60}
-                        fill={colorScale($tweenedBg)}
-                    />
-                </svg>
-            </div>
+            <Background width={chartWidth} height={chartHeight} temperature={temp} {currentIndex}/>
 
-            <div class="chart">
-                <svg width={chartWidth} height={chartHeight}>
-                    <rect
-                        x={chartWidth * 0.075}
-                        y={yScale($tweenedColumn)}
-                        width={chartWidth * 0.85}
-                        height={chartHeight - yScale($tweenedColumn)}
-                        fill="#0C584C"
-                    />
-                </svg>
-            </div>
+            <!-- <ColumnChart
+                width={chartWidth}
+                height={chartHeight}
+                forest={forestPct}
+                currentIndex={currentIndex}
+            /> -->
 
         </div>
     </div>
@@ -351,16 +296,7 @@
         width: 100px;
     }
 
-    .mini-chart {
-        position: absolute;
-        z-index: 10;
-    }
 
-    .mini-chart-temp {
-        position: absolute;
-        z-index: 1;
-    }
-    
 
     .yearsAgo {
         color: white;
@@ -406,11 +342,7 @@
         margin: 5px 0 0 0;
     }
 
-    .bg {
-        position: absolute;
-        text-align: center;
-        z-index: 0;
-    }
+
 
     .container {
         width: 100vw;
@@ -423,33 +355,17 @@
         background-color: transparent;
 
     }
-    .forest-container {
-        position: absolute;
-        color: white;
-        z-index: 2;
-        margin-left: 10%;
-    }
 
-    .forest-label, .temp-label  {
-        margin-bottom: 5px;
-        font-weight: 600;
-    }
 
-   .temp-container {
-        position: absolute;
-        color: white;
-        z-index: 1;
-        margin-left: 10%;
-        margin-top: 10px;
-    }
+
+
+
 
     .explainer {
         font-size: 12px;
         font-weight: 200;
     }
 
-    .chart {
-        z-index: 1;
-    }
+
 
 </style>
