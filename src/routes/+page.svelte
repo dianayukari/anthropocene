@@ -49,7 +49,7 @@
 
         totalScrolls = yearsAgo.length + (pauseIndices.length*pauseScrolls)
 
-        chartHeight = window.outerHeight - 80
+        chartHeight = window.outerHeight - 100
         chartWidth = window.innerWidth
 
         dataReady = true;
@@ -203,7 +203,7 @@
 
     .modal-btn {
         position: absolute;
-        bottom: 10%;
+        bottom: 15%;
         left: 50%;
         transform: translate(-50%, 0);
         background-color: transparent;
