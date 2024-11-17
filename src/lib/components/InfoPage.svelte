@@ -34,20 +34,21 @@
         left: 50%;
         width: 90%;
         max-width: 500px;
-        height: 85%;
+        height: 90%;
         transform: translate(-50%, 0);
         background: white;
         justify-content: center;
         align-items: center;
         z-index: 100;
         box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        background: radial-gradient(circle, rgba(251,254,254,1) 0%, rgba(216,229,251,1) 100%);
     }
 
     .modal-content-container {
         padding: 30px;
-        bottom: 50px;
+        bottom: 30px;
         overflow-y: scroll;
-        height: 65vh;
+        height: 70%;
     }
 
     .modal-content-title {
@@ -72,7 +73,7 @@
         bottom: 5%;
         left: 50%;
         transform: translate(-50%, 0);
-        background-color: white;
+        background-color: transparent;
         color: black;
         padding: 5px 10px;
         border: solid 1px black;
@@ -84,12 +85,6 @@
 
     .modal-close::after {
         content: "\00d7";
-    }
-
-    .btn-container {
-        height: 50px;
-        width: 100%;
-        background-color: white;
     }
 
 </style>
