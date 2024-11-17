@@ -6,6 +6,7 @@
 	import ColumnChart from '../lib/components/ColumnChart.svelte';
 	import InfoPage from '../lib/components/InfoPage.svelte';
 	import Countdown from '../lib/components/Countdown.svelte';
+    import { csvPath } from '$lib/constants';
 
     let yearsAgo = [];
     let currentIndex = 0
@@ -35,7 +36,7 @@
             window.scrollTo(0, 0);
         }
 
-        data = await d3.csv("/timeline.csv");
+        data = await d3.csv(csvPath);
 
         forestPct = data.map(d => +d.pct * 100);
         temp = data.map(d => +d.temp);
