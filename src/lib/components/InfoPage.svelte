@@ -33,6 +33,7 @@
         top: 5%;
         left: 50%;
         width: 90%;
+        max-width: 500px;
         height: 85%;
         transform: translate(-50%, 0);
         background: white;
