@@ -137,7 +137,7 @@
 
             <Background 
                 width={chartWidth} 
-                height={chartHeight} 
+                height={chartHeight + 100} 
                 temperature={temp} 
                 {currentIndex}/>
 
