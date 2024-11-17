@@ -66,7 +66,7 @@
     }
 
     .minichart-label-addition {
-        font-weight: 400;
+        font-weight: 200;
         font-size: 14px;
     }
 

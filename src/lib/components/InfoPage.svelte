@@ -21,7 +21,7 @@
         position: fixed;
         top: 5%;
         left: 50%;
-        width: 60%;
+        width: 85%;
         height: 85%;
         transform: translate(-50%, 0);
         background: white;
