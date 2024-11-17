@@ -49,7 +49,7 @@
 
         totalScrolls = yearsAgo.length + (pauseIndices.length*pauseScrolls)
 
-        chartHeight = window.innerHeight - 40
+        chartHeight = window.outerHeight - 80
         chartWidth = window.innerWidth
 
         dataReady = true;
@@ -171,6 +171,7 @@
     :global(body) {
         font-family: "Lora", serif;
         margin: 0;
+        height: 100vh;
     }
 
     :global(svg) {
@@ -207,12 +208,13 @@
         transform: translate(-50%, 0);
         background-color: transparent;
         color: white;
-        padding: 5px 12px;
+        padding: 5px 11px;
         border: solid 2px white;
         border-radius: 50%;
         font-weight: 600;
         cursor: pointer;
         z-index: 100;
+        content: "\2139";
     }
 
 
