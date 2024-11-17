@@ -3,15 +3,13 @@
     import { cubicOut } from 'svelte/easing';
     import * as d3 from 'd3';
     import MiniChart from './MiniChart.svelte';
-    import { formatNumber } from '$lib/constants';
+    import { formatNumber, labelVisibilityIndex } from '$lib/constants';
 
     export let width;
     export let height;
-    export let temperature;
-    export let currentIndex;
-
-    let fill
-
+    export let temperature = [];
+    export let currentIndex = 0;
+    
     let tween = tweened(8, {
         duration: 400,
         easing: cubicOut
@@ -28,11 +26,13 @@
         .range(["#C9D5FF", "#FCE45E", "#A3181D"])
         .interpolate(d3.interpolate)
 
-    $: if (temperature) {
-        tween.set(currentTemperature);
-        fill = colorScale($tween)
+    $: if (currentTemperature){ 
+        tween.set(currentTemperature); 
     }
+    
+    $: fill = colorScale($tween);
 
+    $: temperatureLabelAddition = currentIndex < labelVisibilityIndex ? "temperature" : ""
 
 
 </script>
@@ -40,13 +40,14 @@
 <div class="bg">
 
     <MiniChart
-    top={0}
-    formatter={formatNumber}
-    labelUnit={"°C"}
-    data={temperature}
-    {currentIndex}
-    {yScale}
-    zindex={1}/>
+        top={0}
+        formatter={formatNumber}
+        labelUnit={"°C"}
+        labelAddition={temperatureLabelAddition}
+        data={temperature}
+        {currentIndex}
+        {yScale}
+        zindex={1}/>
 
     <svg width={width} height={height + 60}>
         <rect

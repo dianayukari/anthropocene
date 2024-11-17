@@ -2,11 +2,9 @@
 
     import {onMount} from 'svelte';
     import * as d3 from 'd3';
-    import { tweened } from 'svelte/motion';
-    import { cubicOut } from 'svelte/easing';
 	import Background from '$lib/components/Background.svelte';
-	import MiniChart from '../lib/components/MiniChart.svelte';
 	import ColumnChart from '../lib/components/ColumnChart.svelte';
+	import InfoPage from '../lib/components/InfoPage.svelte';
 
     let countdownNumbers = [];
     let currentIndex = 0
@@ -27,9 +25,8 @@
     let tempStart = []
 
     let displayedEvents = [{event:"Scroll to start"}]
-    let pathLength = 0
 
-
+    let showModal = false
     let dataReady = false
 
     onMount(async() => {
@@ -110,33 +107,9 @@
 
     }
 
-    //SCALES
-
-    $: miniYScale = d3.scaleLinear()
-        .domain([0, 1])
-        .range([50, 0])
-
-
-
-
-
-
-
-    // $: miniLineGeneratorTemp = d3.line()
-    //     .x((d, i) => i * (50 / tempStart.length))
-    //     .y(d => miniYScaleTemp(d))
-    //     .curve(d3.curveMonotoneX)(temp.slice(0, $lineTween));
-
-    //TRANSITIONS
-
-
-
-
-
-    $: column = forestPct[currentIndex] || 100
-    
-
-    // $: forestLabelTop = `${yScale($tweenedColumn) + 5}px`;
+    function toggleModal() {
+        showModal = !showModal
+    }
 
 
 </script>
@@ -219,7 +192,7 @@
 
 
 
-            <!-- <div class="countdownContainer">
+            <div class="countdownContainer">
 
                 <div class="countdown">
                     {#if yearsAgo[currentIndex] > 12000}
@@ -245,18 +218,31 @@
                     {/each}                
                 </div>
 
-            </div> -->
+            </div>
 
-            <Background width={chartWidth} height={chartHeight} temperature={temp} {currentIndex}/>
+            <Background 
+                width={chartWidth} 
+                height={chartHeight} 
+                temperature={temp} 
+                {currentIndex}/>
 
-            <!-- <ColumnChart
+            <ColumnChart
                 width={chartWidth}
                 height={chartHeight}
                 forest={forestPct}
                 currentIndex={currentIndex}
-            /> -->
+            />
+
+            <button on:click={toggleModal} class="modal-btn">i</button>
+
+            {#if showModal}
+                <InfoPage
+                    closeModal={toggleModal}
+                />
+            {/if}
 
         </div>
+    
     </div>
 
 {:else}
@@ -296,11 +282,9 @@
         width: 100px;
     }
 
-
-
     .yearsAgo {
         color: white;
-        font-size: 40px;
+        font-size: 38px;
         font-weight: 400;
         margin: 0;
     }
@@ -356,14 +340,24 @@
 
     }
 
-
-
-
-
-
     .explainer {
         font-size: 12px;
         font-weight: 200;
+    }
+
+    .modal-btn {
+        position: absolute;
+        bottom: 10%;
+        left: 50%;
+        transform: translate(-50%, 0);
+        background-color: transparent;
+        color: white;
+        padding: 5px 12px;
+        border: solid 2px white;
+        border-radius: 50%;
+        font-weight: 600;
+        cursor: pointer;
+        z-index: 100;
     }
 
 

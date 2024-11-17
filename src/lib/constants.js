@@ -7,3 +7,4 @@ d3.formatDefaultLocale({
 })
 
 export const formatNumber = d3.format(",.2f");
+export const labelVisibilityIndex = 11779;

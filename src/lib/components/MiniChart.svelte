@@ -8,6 +8,7 @@
     export let formatter;
     export let currentIndex;
     export let labelUnit;
+    export let labelAddition = "";
     export let data;
     export let yScale;
     export let zindex;
@@ -18,7 +19,10 @@
         });
 
     $: pathLength = Math.min(currentIndex, data.length - 1)
-    tween.set(pathLength)
+    
+    $: if (data) {
+        tween.set(pathLength)
+    }
 
     $: lineGenerator = d3.line()
         .x((d, i) => i * (50 / data.length))
@@ -28,10 +32,13 @@
     $: currentData = data[currentIndex];
 
 
+
 </script>
 
 <div class="minichart-container" style="top: {top}; z-index: {zindex};">
-    <p class="minichart-label">{formatter(currentData)}{labelUnit}</p>
+    <p class="minichart-label">{formatter(currentData)}{labelUnit}
+        <span class="minichart-label-addition"> {labelAddition}</span>
+    </p>
     <div class="minichart" >
         <svg width={100} height={60}>
             <path
@@ -56,6 +63,11 @@
     .minichart-label  {
         margin-bottom: 5px;
         font-weight: 600;
+    }
+
+    .minichart-label-addition {
+        font-weight: 400;
+        font-size: 14px;
     }
 
     .minichart {
