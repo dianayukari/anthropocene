@@ -49,9 +49,13 @@
 
         totalScrolls = yearsAgo.length + (pauseIndices.length*pauseScrolls)
 
-        chartHeight = window.outerHeight - 100
-        chartWidth = window.innerWidth
+        if(window.innerWidth < 600) {
+            chartHeight = window.outerHeight * 0.85
+        } else {
+            chartHeight = window.outerHeight * 0.9
+        }
 
+        chartWidth = window.innerWidth 
         dataReady = true;
     });            
 

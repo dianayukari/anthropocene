@@ -36,7 +36,7 @@ $: currentYear = yearsAgo[currentIndex]
 .countdown-container {
         display: flex;
         position: absolute;
-        top: 35%;
+        top: 30%;
         left: 50%;
         flex-wrap: wrap;
         transform: translate(-40%, 0);

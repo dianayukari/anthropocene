@@ -41,7 +41,7 @@
         align-items: center;
         z-index: 100;
         box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-        background: radial-gradient(circle, rgba(251,254,254,1) 0%, rgba(216,229,251,1) 100%);
+        background: radial-gradient(circle, rgba(251,254,254,1) 0%, rgba(251,230,216,1) 100%);
     }
 
     .modal-content-container {
